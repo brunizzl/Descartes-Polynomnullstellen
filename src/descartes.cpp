@@ -102,7 +102,7 @@ namespace polynomial {
 
 	Bernstein from_monomials(const Monomials& monomials, const Interval& interval)
 	{
-		return Bernstein();
+		return Bernstein(); 
 	}
 
 	Bernstein& operator+=(Bernstein& p1, const Bernstein& p2)

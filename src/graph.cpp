@@ -65,16 +65,6 @@ void Plot::add_polinomial(const polynomial::Monomials& p, const RGB& color)
 	this->picture.add_line_path(graph, false, { 0.5, color });
 }
 
-void Plot::add_polinomial_derivative(const polynomial::Monomials& p, const RGB& color)
-{
-	std::vector<Vec2D> graph;
-	const double dx = (this->max.x - this->min.x) / 500;
-	for (double x = this->min.x; x < this->max.x; x += dx) {
-		graph.push_back(this->math_to_svg(Vec2D{ x, evaluate_derivative(p, x) }));
-	}
-	this->picture.add_line_path(graph, false, { 0.5, color });
-}
-
 void Plot::add_interval(Interval interval, const RGB& color)
 {
 	const Vec2D upper_left = { interval.min * this->x_scale, svg_min.y };

@@ -4,6 +4,7 @@
 #include <array>
 #include <iostream>
 #include <cassert>
+#include <complex>
 
 
 struct Interval
@@ -16,7 +17,6 @@ struct Interval
 std::ostream& operator<<(std::ostream& stream, Interval interval);
 
 
-
 namespace polynomial {
 
 	enum Base_Type
@@ -26,21 +26,22 @@ namespace polynomial {
 	};
 
 	template <Base_Type base>
-	struct Polynomial
+	struct Polynomial 
+		:public  std::vector<double>
 	{
-		std::vector<double> coeffs;
-
-		Polynomial(std::initializer_list<double> coeffs_) :coeffs(coeffs_) {
-			assert(coeffs_.size() > 0);
+		Polynomial(std::initializer_list<double> coeffs) :std::vector<double>(coeffs) {
+			assert(coeffs.size() > 0);
 		}
 
-		Polynomial(std::size_t size, double value) :coeffs(size, value) {
+		Polynomial(std::size_t size, double value) :std::vector<double>(size, value) {
 			assert(size > 0);
 		}
 
-		Polynomial(const std::vector<double>&& coeffs_) :coeffs(std::move(coeffs_)) {}
+		Polynomial(std::vector<double>&& coeffs) :std::vector<double>(std::move(coeffs)) {
+			assert(this->size() > 0);
+		}
 
-		int degree() const { return coeffs.size() - 1; }
+		int degree() const { return this->size() - 1; }
 	};
 
 	using Monomials = Polynomial<Base_Type::monomial>;
@@ -53,9 +54,23 @@ namespace polynomial {
 
 	Monomials from_roots(const std::vector<double>& roots);
 
+	//each element in pair_representatives gets mirrored on the real axis and both values are roots of the result
+	Monomials from_complex_root_pairs(const std::vector<std::complex<double>>& pair_representatives);
+
 	Monomials operator*(const Monomials& p1, const Monomials& p2);
 
 	Monomials operator*(const Monomials& p, double factor);
+
+	//result of function from_divison
+	struct Division
+	{
+		Monomials quotient;
+		Monomials rest;
+	};
+
+	Division operator/(const Monomials& numerator, const Monomials& denominator);
+
+	Monomials& operator%=(Monomials& a, const Monomials& m);
 
 	Monomials operator+(const Monomials& p1, const Monomials& p2);
 
@@ -63,12 +78,23 @@ namespace polynomial {
 
 	double evaluate(const Monomials& polinomial, double x);
 
-	double evaluate_derivative(const Monomials& polinomial, double x);
+	Monomials derive(const Monomials& p);
 
+	Monomials greatest_common_denominator(const Monomials& p1, const Monomials& p2, double allowed_err = 0.001);
+
+	//divide p by its highest coefficient
+	void normalize(Monomials& p);
 
 	using Bernstein = Polynomial<Base_Type::bernstein>;
 
+	// the usual Bernstein base consists of elements B_k^n(x) = chose(n, k) * x^k * (1-x)^(n-k)
+	// the full polynomial therefore is \sum_{k=0}^n b_k * B_k^n(x)
+	// as noted here https://www.cise.ufl.edu/research/SurfLab/seminar/algebraicmanipulation.pdf
+	// where b_k are the coefficients stored in the vector
+
 	Bernstein from_monomials(const Monomials& monomials, const Interval& interval);
+
+	double evaluate(const Bernstein& polinomial, double x);
 
 	Bernstein& operator+=(Bernstein& p1, const Bernstein& p2);
 }
@@ -85,6 +111,8 @@ polynomial::Monomials line_pow(polynomial::Line line, std::size_t n);
 
 //returns how many roots of polinomial are at most in search_area
 std::size_t upper_bound_roots(const polynomial::Monomials& polinomial, Interval search_area);
+
+polynomial::Monomials no_root_multiplicities(const polynomial::Monomials& p, double allowed_err = 0.001);
 
 //default parameter in descartes_root_isolation
 bool default_accept(const polynomial::Monomials& p, const Interval& i);

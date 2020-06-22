@@ -421,12 +421,12 @@ std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const
 	coeffs.reserve(n + 1);
 	coeffs.push_back(polynomial);
 	for (int i = 1; i <= n; i++) {
-		coeffs.emplace_back(std::vector<double>(n, 0.0));
+		coeffs.emplace_back(std::vector<double>(n + 1, 0.0));
 	}
 
 	for (int i = 1; i <= n; i++) {
-		for (int j = 1; j <= n - i; j++) {
-			coeffs[j][i] = 0.5 * coeffs[j][i - 1] + 0.5 * coeffs[j + 1][i - 1];
+		for (int j = 0; j <= n - i; j++) {
+			coeffs[i][j] = 0.5 * coeffs[i - 1][j] + 0.5 * coeffs[i - 1][j + 1];
 		}
 	}
 
@@ -440,8 +440,8 @@ std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const
 	polynomial::Bernstein snd_half(n + 1, 0.0, snd_half_interval);
 
 	for (int i = 0; i <= n; i++) {
-		fst_half[i] = coeffs[0][i];
-		snd_half[i] = coeffs[n-i][i];
+		fst_half[i] = coeffs[i][0];
+		snd_half[i] = coeffs[n - i][i];
 	}
 
 	return std::make_pair(std::move(fst_half), std::move(snd_half));

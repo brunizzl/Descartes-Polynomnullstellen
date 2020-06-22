@@ -19,32 +19,23 @@ std::ostream& operator<<(std::ostream& stream, Interval interval);
 
 namespace polynomial {
 
-	enum Base_Type
-	{
-		monomial,
-		bernstein
-	};
-
-	template <Base_Type base>
-	struct Polynomial 
+	struct Monomials 
 		:public  std::vector<double>
 	{
-		Polynomial(std::initializer_list<double> coeffs) :std::vector<double>(coeffs) {
+		Monomials(std::initializer_list<double> coeffs) :std::vector<double>(coeffs) {
 			assert(coeffs.size() > 0);
 		}
 
-		Polynomial(std::size_t size, double value) :std::vector<double>(size, value) {
+		Monomials(std::size_t size, double value) :std::vector<double>(size, value) {
 			assert(size > 0);
 		}
 
-		Polynomial(std::vector<double>&& coeffs) :std::vector<double>(std::move(coeffs)) {
+		Monomials(std::vector<double>&& coeffs) :std::vector<double>(std::move(coeffs)) {
 			assert(this->size() > 0);
 		}
 
 		int degree() const { return this->size() - 1; }
 	};
-
-	using Monomials = Polynomial<Base_Type::monomial>;
 
 	//same as polynomial::Monomials, only allocated on the stack (and thus with size known at compile time)
 	template <std::size_t n>
@@ -85,7 +76,26 @@ namespace polynomial {
 	//divide p by its highest coefficient
 	void normalize(Monomials& p);
 
-	using Bernstein = Polynomial<Base_Type::bernstein>;
+
+	struct Bernstein 
+		:public  std::vector<double>
+	{
+		Interval interval;
+
+		Bernstein(std::initializer_list<double> coeffs, Interval interval_) :std::vector<double>(coeffs), interval(interval_) {
+			assert(coeffs.size() > 0);
+		}
+
+		Bernstein(std::size_t size, double value, Interval interval_) :std::vector<double>(size, value), interval(interval_) {
+			assert(size > 0);
+		}
+
+		Bernstein(std::vector<double>&& coeffs, Interval interval_) :std::vector<double>(std::move(coeffs)), interval(interval_) {
+			assert(this->size() > 0);
+		}
+
+		int degree() const { return this->size() - 1; }
+	};
 
 	// the usual Bernstein base consists of elements B_k^n(x) = chose(n, k) * x^k * (1-x)^(n-k)
 	// the full polynomial therefore is \sum_{k=0}^n b_k * B_k^n(x)
@@ -112,7 +122,7 @@ polynomial::Monomials line_pow(polynomial::Line line, std::size_t n);
 //returns how many roots of polinomial are at most in search_area
 std::size_t upper_bound_roots(const polynomial::Monomials& polinomial, Interval search_area);
 
-polynomial::Monomials no_root_multiplicities(const polynomial::Monomials& p, double allowed_err = 0.001);
+polynomial::Monomials no_root_multiplicities(const polynomial::Monomials& p, double allowed_err = 0.000000001);
 
 //default parameter in descartes_root_isolation
 bool default_accept(const polynomial::Monomials& p, const Interval& i);
@@ -122,6 +132,10 @@ bool default_accept(const polynomial::Monomials& p, const Interval& i);
 //parameter accept decides, if an interval should be accepted as final, despite still having multiple roots.
 std::vector<Interval> descartes_root_isolation(const polynomial::Monomials& polinomial, const Interval& start_zone, 
 	bool(*accept)(const polynomial::Monomials& p, const Interval& i) = default_accept);
+
+std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const polynomial::Bernstein& polynomial);
+
+std::vector<Interval> descartes_root_isolation(const polynomial::Bernstein& polynomial);
 
 
 

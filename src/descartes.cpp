@@ -232,12 +232,9 @@ namespace polynomial {
 		Monomials a = a_in;
 		Monomials b = b_in;
 
-		bool b_is_about_zero = absolute_biggest_coeff(b) < allowed_err;
-		while (!b_is_about_zero) {
+		while (absolute_biggest_coeff(b) > allowed_err) {	//while b is not ca. 0.0
 			a %= b;
 			std::swap(a, b);
-
-			b_is_about_zero = absolute_biggest_coeff(b) < allowed_err;
 		}
 		return a;
 	}
@@ -259,19 +256,22 @@ namespace polynomial {
 
 	Bernstein from_monomials(const Monomials& monomials, const Interval& interval)
 	{
-		//as written in .hpp, the coeficcients contain chose(n, k) as factor.
-		Bernstein result(binomial_coefficients(monomials.size()));
+		Bernstein result(binomial_coefficients(monomials.size()), interval);
+		//TODO
 		return result;
 	}
 
-	double evaluate(const Bernstein& polinomial, double x)
+	double evaluate(const Bernstein& polynomial, double x)
 	{
+		const double a = polynomial.interval.min;
+		const double b = polynomial.interval.max;
+		const int n = polynomial.degree();
+
 		double result = 0.0;
-		const int n = polinomial.degree();
-		for (int k = 0; k <= polinomial.degree(); k++) {
-			result += polinomial[k] * std::pow(x, k) * std::pow(1 - x, n - k) * binomial::choose(n, k);
+		for (int k = 0; k <= polynomial.degree(); k++) {
+			result += polynomial[k] * binomial::choose(n, k) * std::pow(x - a, k) * std::pow(b - x, n - k);
 		}
-		return result;
+		return result / std::pow(b - a, n);
 	}
 
 	Bernstein& operator+=(Bernstein& p1, const Bernstein& p2)
@@ -336,7 +336,7 @@ Monomials line_pow(Line line, std::size_t n)
 	return result;
 }
 
-std::size_t number_sign_changes(const Monomials& p)
+std::size_t number_sign_changes(const std::vector<double> & p)
 {
 	std::size_t sign_changes = 0;
 	enum class Sign
@@ -409,6 +409,68 @@ std::vector<Interval> descartes_root_isolation(const Monomials& polynomial, cons
 			const double midpoint = (current_interval.min / 2) + (current_interval.max / 2);
 			search_intervals.emplace_back(Interval{ current_interval.min, midpoint });
 			search_intervals.emplace_back(Interval{ midpoint, current_interval.max });
+		}
+	}
+	return root_intervals;
+}
+
+std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const polynomial::Bernstein& polynomial)
+{
+	const int n = polynomial.degree();
+	std::vector<std::vector<double>> coeffs;
+	coeffs.reserve(n + 1);
+	coeffs.push_back(polynomial);
+	for (int i = 1; i <= n; i++) {
+		coeffs.emplace_back(std::vector<double>(n, 0.0));
+	}
+
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= n - i; j++) {
+			coeffs[j][i] = 0.5 * coeffs[j][i - 1] + 0.5 * coeffs[j + 1][i - 1];
+		}
+	}
+
+	const double a = polynomial.interval.min;
+	const double b = polynomial.interval.max;
+	const double m = polynomial.interval.min + polynomial.interval.width() / 2;
+	const Interval fst_half_interval = { a, m };
+	const Interval snd_half_interval = { m, b };
+
+	polynomial::Bernstein fst_half(n + 1, 0.0, fst_half_interval);
+	polynomial::Bernstein snd_half(n + 1, 0.0, snd_half_interval);
+
+	for (int i = 0; i <= n; i++) {
+		fst_half[i] = coeffs[0][i];
+		snd_half[i] = coeffs[n-i][i];
+	}
+
+	return std::make_pair(std::move(fst_half), std::move(snd_half));
+}
+
+std::vector<Interval> descartes_root_isolation(const polynomial::Bernstein& polynomial)
+{
+	std::vector<Interval> root_intervals;
+	root_intervals.reserve(polynomial.degree());
+
+	std::vector<polynomial::Bernstein> search_objects;
+	search_objects.reserve(polynomial.degree());
+	search_objects.push_back(polynomial);
+
+	while (search_objects.size()) {
+		const auto current = std::move(search_objects.back());
+		search_objects.pop_back();
+
+		const auto sign_variations = number_sign_changes(current);
+		if (sign_variations == 0) {
+			continue;
+		}
+		else if (sign_variations == 1) {
+			root_intervals.push_back(current.interval);
+		}
+		else if (sign_variations > 1 && current.interval.width() > 0.000001) {
+			auto [b1, b2] = de_casteljau_split(current);
+			search_objects.push_back(std::move(b1));
+			search_objects.push_back(std::move(b2));
 		}
 	}
 	return root_intervals;

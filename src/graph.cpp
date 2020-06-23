@@ -75,6 +75,16 @@ void Plot::add_polynomial(const polynomial::Bernstein& p, const RGB& color)
 	this->picture.add_line_path(graph, false, { 0.5, color });
 }
 
+void Plot::add_control_polygon(const polynomial::Bernstein& p, const SVG::Style& style)
+{
+	std::vector<Vec2D> points;
+	points.reserve(p.size());
+	for (int i = 0; i <= p.degree(); i++) {
+		points.push_back(this->math_to_svg(Vec2D{ p.interval.min + i * p.interval.width() / p.degree(), p[i] }));
+	}
+	this->picture.add_line_path(points, false, style);
+}
+
 void Plot::add_interval(Interval interval, const RGB& color)
 {
 	const Vec2D upper_left = { interval.min * this->x_scale, svg_min.y };
@@ -82,8 +92,7 @@ void Plot::add_interval(Interval interval, const RGB& color)
 	const Vec2D lower_left = { interval.min * this->x_scale, svg_max.y };
 	const Vec2D lower_right = { interval.max * this->x_scale, svg_max.y };
 
-	this->picture.add_line_path({lower_left, lower_right, upper_right, upper_left},
-		true, SVG::Style{ 0, RGB{ 0, 0, 0 }, color, true, 0.2 });
+	this->picture.add_line_path({lower_left, lower_right, upper_right, upper_left}, true, svg_style::fill(color));
 
 	this->picture.add_line(upper_left, lower_left, SVG::Style{ 0.1, color });
 	this->picture.add_line(upper_right, lower_right, SVG::Style{ 0.1, color });

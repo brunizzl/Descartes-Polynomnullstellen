@@ -15,6 +15,10 @@ struct RGB
 
 namespace rgb {
 	constexpr RGB black{ 0, 0, 0 };
+	constexpr RGB white{ 255, 255, 255 };
+	constexpr RGB red{200, 50, 50};
+	constexpr RGB green{50, 200, 75};
+	constexpr RGB blue{25, 75, 200};
 }
 
 struct HSV
@@ -63,6 +67,23 @@ public:
 private:
 	std::ofstream document;
 };
+
+namespace svg_style {
+
+	constexpr SVG::Style line(const RGB& color, double stroke = 5) {
+		return { stroke, color, rgb::black, false, 0 };
+	}
+	constexpr SVG::Style fill(const RGB& color) { 
+		return { 0, rgb::black, color, true, 0.2 }; 
+	}
+
+	using namespace rgb;
+	constexpr SVG::Style red_line = { 0.5, red, black, false, 0 };
+	constexpr SVG::Style green_line = { 0.5, green, black, false, 0 };
+	constexpr SVG::Style blue_line = { 0.5, blue, black, false, 0 };
+
+	constexpr SVG::Style black_fill = { 0, black, black, true, 0.2 };
+}
 
 namespace svg_text {
 	const SVG::Text_Style small  = { "Veranda", 2, rgb::black };

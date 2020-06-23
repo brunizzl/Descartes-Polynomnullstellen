@@ -27,6 +27,7 @@ int main()
 	}
 
 	{
+		std::cout << "bernstein base test... ";
 		const Bernstein b_0({ 1, 0, 0, 0, 0 }, { 0, 1 });
 		const Bernstein b_1({ 0, 1, 0, 0, 0 }, { 0, 1 });
 		const Bernstein b_2({ 0, 0, 1, 0, 0 }, { 0, 1 });
@@ -38,14 +39,20 @@ int main()
 		plot2.add_polynomial(b_2, RGB{ 0, 100, 0 });
 		plot2.add_polynomial(b_3, RGB{ 0, 150, 0 });
 		plot2.add_polynomial(b_4, RGB{ 0, 200, 0 });
+		std::cout << "  done\n";
 	}
 
 	{
-		std::cout << "bernstein zeros test...";
+		std::cout << "bernstein roots test...";
 		const Bernstein b({ -4, 4, 4,-4, -4, 4, 4, -4, -4, 4 }, { -5, 5 });
+		const auto [b1, b2] = de_casteljau_split(b);
 		auto roots = descartes_root_isolation(b);
 		Plot plot3("test_bernstein.svg", 5, 5);
 		plot3.add_polynomial(b, RGB{ 200, 200, 0 });
+		plot3.add_control_polygon(b, svg_style::line(rgb::red, 0.2));
+		plot3.add_control_polygon(b1, svg_style::line(rgb::blue, 0.2));
+		plot3.add_control_polygon(b2, svg_style::line(rgb::blue, 0.2));
+
 		for (const auto& interval : roots) {
 			plot3.add_interval(interval);
 		}

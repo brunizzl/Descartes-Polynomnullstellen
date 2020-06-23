@@ -19,5 +19,6 @@ public:
 
 	void add_polynomial(const polynomial::Monomials& p, const RGB& color);
 	void add_polynomial(const polynomial::Bernstein& p, const RGB& color);
+	void add_control_polygon(const polynomial::Bernstein& p, const SVG::Style& style = svg_style::red_line);
 	void add_interval(Interval interval, const RGB& color = RGB{ 0, 200, 0 });
 };

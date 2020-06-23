@@ -17,8 +17,8 @@ private:
 public:
 	Plot(const std::string& name, double x_max, double y_max);
 
-	void add_polynomial(const polynomial::Monomials& p, const RGB& color);
-	void add_polynomial(const polynomial::Bernstein& p, const RGB& color);
+	void add_polynomial(const polynomial::Monomials& p, const RGB& color, double stroke = 0.6);
+	void add_polynomial(const polynomial::Bernstein& p, const RGB& color, double stroke = 0.6);
 	void add_control_polygon(const polynomial::Bernstein& p, const SVG::Style& style = svg_style::red_line);
 	void add_interval(Interval interval, const RGB& color = RGB{ 0, 200, 0 });
 };

@@ -10,6 +10,22 @@ using namespace polynomial;
 
 int main()
 {
+
+	{
+		std::cout << "monomials base test ...";
+		const Monomials m_0({ 1, 0, 0, 0, 0 });
+		const Monomials m_1({ 0, 1, 0, 0, 0 });
+		const Monomials m_2({ 0, 0, 1, 0, 0 });
+		const Monomials m_3({ 0, 0, 0, 1, 0 });
+		const Monomials m_4({ 0, 0, 0, 0, 1 });
+		Plot plot("test_m4.svg", 2, 2);
+		plot.add_polynomial(m_0, RGB{ 0, 0, 0 });
+		plot.add_polynomial(m_1, RGB{ 0, 50, 0 });
+		plot.add_polynomial(m_2, RGB{ 0, 100, 0 });
+		plot.add_polynomial(m_3, RGB{ 0, 150, 0 });
+		plot.add_polynomial(m_4, RGB{ 0, 200, 0 });
+		std::cout << "  done\n";
+	}
 	{
 		std::cout << "monomials roots test...";
 		const Monomials p = from_roots({0, 0, 0, 2, 2, 2, 2, 3}) * from_complex_root_pairs({ {1, 0.15} });

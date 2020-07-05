@@ -339,31 +339,9 @@ Monomials line_pow(Line line, std::size_t n)
 std::size_t number_sign_changes(const std::vector<double> & p)
 {
 	std::size_t sign_changes = 0;
-	enum class Sign
-	{
-		positive, negative, unknown
-	} last_sign = Sign::unknown;
-
-	for (auto coefficient : p) {
-		switch (last_sign) {
-		case Sign::unknown:
-			if (coefficient < 0) { last_sign = Sign::negative; }
-			if (coefficient > 0) { last_sign = Sign::positive; }
-			break;
-
-		case Sign::positive:
-			if (coefficient < 0) {
-				sign_changes++;
-				last_sign = Sign::negative;
-			}
-			break;
-
-		case Sign::negative:
-			if (coefficient > 0) {
-				sign_changes++;
-				last_sign = Sign::positive;
-			}
-			break;
+	for (int i = 0; i < p.size() - 1; i++) {
+		if (p[i] * p[i + 1] < 0.0) {
+			sign_changes++;
 		}
 	}
 	return sign_changes;
@@ -384,25 +362,25 @@ std::size_t upper_bound_roots(const Monomials& p, Interval search_area)
 	return roots_at_0 + number_sign_changes(roots_of_search_area);
 }
 
-std::vector<Interval> descartes_root_isolation(const Monomials& polynomial, const Interval& start_zone, 
+std::vector<Interval> descartes_root_isolation(const Monomials& p, const Interval& start_zone, 
 	bool(*accept)(const Monomials& p, const Interval& i))
 {
 	std::vector<Interval> root_intervals;
-	root_intervals.reserve(polynomial.degree());
+	root_intervals.reserve(p.degree());
 
 	std::vector<Interval> search_intervals;		//called Q in VikramSharma
-	search_intervals.reserve(polynomial.degree());
+	search_intervals.reserve(p.degree());
 	search_intervals.push_back(start_zone);
 
 	while (search_intervals.size()) {
 		const auto current_interval = search_intervals.back();
 		search_intervals.pop_back();
 
-		const auto roots_in_interval = upper_bound_roots(polynomial, current_interval);
+		const auto roots_in_interval = upper_bound_roots(p, current_interval);
 		if (roots_in_interval == 0) {
 			continue;	//throw away current_interval
 		}
-		else if (roots_in_interval == 1 || accept(polynomial, current_interval)) {
+		else if (roots_in_interval == 1 || accept(p, current_interval)) {
 			root_intervals.push_back(current_interval);	//accepted as final interval
 		}
 		else if (roots_in_interval > 1) {	//split current_interval

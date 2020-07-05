@@ -131,28 +131,4 @@
   <path d="M0 -0 11.1111 -5 22.2222 -10 33.3333 -10 44.4444 -0 55.5556 20 66.6667 40 77.7778 40 
     88.8889 -0 100 -80 "
     stroke="#194bc8" stroke-width="0.3" fill="none"/>
-  <path d="M50 100 100 100 100 -100 50 -100 Z"
-    stroke="#000000" stroke-width="0" fill="#00c800" fill-opacity="0.2"/>
-  <line x1="50" y1="-100" x2="50" y2="100"
-    stroke="#00c800" stroke-width="0.1"/>
-  <line x1="100" y1="-100" x2="100" y2="100"
-    stroke="#00c800" stroke-width="0.1"/>
-  <path d="M0 100 50 100 50 -100 0 -100 Z"
-    stroke="#000000" stroke-width="0" fill="#00c800" fill-opacity="0.2"/>
-  <line x1="0" y1="-100" x2="0" y2="100"
-    stroke="#00c800" stroke-width="0.1"/>
-  <line x1="50" y1="-100" x2="50" y2="100"
-    stroke="#00c800" stroke-width="0.1"/>
-  <path d="M-50 100 0 100 0 -100 -50 -100 Z"
-    stroke="#000000" stroke-width="0" fill="#00c800" fill-opacity="0.2"/>
-  <line x1="-50" y1="-100" x2="-50" y2="100"
-    stroke="#00c800" stroke-width="0.1"/>
-  <line x1="0" y1="-100" x2="0" y2="100"
-    stroke="#00c800" stroke-width="0.1"/>
-  <path d="M-100 100 -50 100 -50 -100 -100 -100 Z"
-    stroke="#000000" stroke-width="0" fill="#00c800" fill-opacity="0.2"/>
-  <line x1="-100" y1="-100" x2="-100" y2="100"
-    stroke="#00c800" stroke-width="0.1"/>
-  <line x1="-50" y1="-100" x2="-50" y2="100"
-    stroke="#00c800" stroke-width="0.1"/>
 </svg>

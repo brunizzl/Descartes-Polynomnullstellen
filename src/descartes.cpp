@@ -352,8 +352,11 @@ std::size_t upper_bound_roots(const Monomials& p, Interval search_area)
 	Monomials roots_of_search_area(p.size(), 0.0);	//called B in VikramSharma
 
 	for (int i = 0; i <= p.degree(); i++) {
-		//ith_summands = (x+1)^(n-i) * (ax+b)^i * a[i] where a[i] denotes coefficient in front of ith monom in A (names from VikramSharma)
-		const Monomials ith_summands = line_pow(Line{ 1, 1 }, p.degree() - i) * line_pow(Line{ search_area.min, search_area.max }, i) * (p[i]);
+		//ith_summands = (x+1)^{n-i} * (ax+b)^i * a_i
+		const Monomials ith_summands = 
+			line_pow(Line{ 1, 1 }, p.degree() - i) 
+			* line_pow(Line{ search_area.min, search_area.max }, i) 
+			* p[i];
 		roots_of_search_area += ith_summands;
 	}
 	const auto roots_at_0 = std::distance(roots_of_search_area.begin(), 

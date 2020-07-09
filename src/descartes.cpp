@@ -108,7 +108,7 @@ namespace polynomial {
 			std::find_if(denominator.rbegin(), denominator.rend(), nonzero), 
 			denominator.rend()
 		) - 1;
-		if (real_denominator_degree <= 0) {
+		if (real_denominator_degree < 0) {
 			throw std::exception("dividing by 0");
 		}
 		
@@ -219,20 +219,10 @@ namespace polynomial {
 	//euclids algorithm found here: https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclid's_algorithm
 	Monomials greatest_common_denominator(const Monomials& a_in, const Monomials& b_in, double allowed_err)
 	{
-		const auto absolute_biggest_coeff = [](const Monomials& p) -> double {
-			if (p.size()) {
-				const auto [min, max] = std::minmax_element(p.begin(), p.end());
-				return std::max(std::abs(*min), *max);
-			}
-			else {
-				return 0.0;
-			}
-		};
-
 		Monomials a = a_in;
 		Monomials b = b_in;
 
-		while (absolute_biggest_coeff(b) > allowed_err) {	//while b is not ca. 0.0
+		while (absolute_biggest_coefficient(b) > allowed_err) {	//while b is not ca. 0.0
 			a %= b;
 			std::swap(a, b);
 		}
@@ -252,9 +242,7 @@ namespace polynomial {
 		}
 	}
 
-
-
-	Bernstein from_monomials(const Monomials& monomials, const Interval& interval)
+	Bernstein to_bernstein(const Monomials& monomials, const Interval& interval)
 	{
 		Bernstein result(binomial_coefficients(monomials.size()), interval);
 		//TODO
@@ -324,6 +312,17 @@ std::vector<double> binomial_coefficients(std::size_t n_size)
 	return coefficients;
 }
 
+double absolute_biggest_coefficient(const std::vector<double>& vec)
+{
+	if (vec.size()) {
+		const auto [min, max] = std::minmax_element(vec.begin(), vec.end());
+		return std::max(std::abs(*min), *max);
+	}
+	else {
+		return 0.0;
+	}
+}
+
 using namespace polynomial;
 
 Monomials line_pow(Line line, std::size_t n)
@@ -376,50 +375,39 @@ std::vector<Interval> descartes_root_isolation(const Monomials& p, const Interva
 	search_intervals.push_back(start_zone);
 
 	while (search_intervals.size()) {
-		const auto current_interval = search_intervals.back();
+		const auto current = search_intervals.back();
 		search_intervals.pop_back();
 
-		const auto roots_in_interval = upper_bound_roots(p, current_interval);
+		const auto roots_in_interval = upper_bound_roots(p, current);
 		if (roots_in_interval == 0) {
-			continue;	//throw away current_interval
+			continue;	//throw away current
 		}
-		else if (roots_in_interval == 1 || accept(p, current_interval)) {
-			root_intervals.push_back(current_interval);	//accepted as final interval
+		else if (roots_in_interval == 1 || accept(p, current)) {
+			root_intervals.push_back(current);	//accepted as final interval
 		}
-		else if (roots_in_interval > 1) {	//split current_interval
-			const double midpoint = (current_interval.min / 2) + (current_interval.max / 2);
-			search_intervals.emplace_back(Interval{ current_interval.min, midpoint });
-			search_intervals.emplace_back(Interval{ midpoint, current_interval.max });
+		else if (roots_in_interval > 1) {	//split current
+			const double midpoint = (current.min / 2) + (current.max / 2);
+			search_intervals.emplace_back(Interval{ current.min, midpoint });
+			search_intervals.emplace_back(Interval{ midpoint, current.max });
 		}
 	}
 	return root_intervals;
 }
 
-std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const polynomial::Bernstein& polynomial)
+std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const polynomial::Bernstein& b)
 {
-	const int n = polynomial.degree();
-	std::vector<std::vector<double>> coeffs;
-	coeffs.reserve(n + 1);
-	coeffs.push_back(polynomial);
-	for (int i = 1; i <= n; i++) {
-		coeffs.emplace_back(std::vector<double>(n + 1, 0.0));
-	}
+	const int n = b.degree();
+	std::vector<std::vector<double>> coeffs(n + 1, std::vector<double>(n + 1, 0.0));
 
 	for (int i = 1; i <= n; i++) {
 		for (int j = 0; j <= n - i; j++) {
 			coeffs[i][j] = 0.5 * coeffs[i - 1][j] + 0.5 * coeffs[i - 1][j + 1];
 		}
 	}
-
-	const double a = polynomial.interval.min;
-	const double b = polynomial.interval.max;
-	const double m = polynomial.interval.min + polynomial.interval.width() / 2;
-	const Interval fst_half_interval = { a, m };
-	const Interval snd_half_interval = { m, b };
-
-	polynomial::Bernstein fst_half(n + 1, 0.0, fst_half_interval);
-	polynomial::Bernstein snd_half(n + 1, 0.0, snd_half_interval);
-
+	
+	const double m = b.interval.min / 2 + b.interval.max / 2;
+	polynomial::Bernstein fst_half(n + 1, 0.0, Interval{ b.interval.min, m });
+	polynomial::Bernstein snd_half(n + 1, 0.0, Interval{ m, b.interval.max });
 	for (int i = 0; i <= n; i++) {
 		fst_half[i] = coeffs[i][0];
 		snd_half[i] = coeffs[n - i][i];
@@ -428,14 +416,14 @@ std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const
 	return std::make_pair(std::move(fst_half), std::move(snd_half));
 }
 
-std::vector<Interval> descartes_root_isolation(const polynomial::Bernstein& polynomial)
+std::vector<Interval> descartes_root_isolation(const polynomial::Bernstein& b)
 {
 	std::vector<Interval> root_intervals;
-	root_intervals.reserve(polynomial.degree());
+	root_intervals.reserve(b.degree());
 
 	std::vector<polynomial::Bernstein> search_objects;
-	search_objects.reserve(polynomial.degree());
-	search_objects.push_back(polynomial);
+	search_objects.reserve(b.degree());
+	search_objects.push_back(b);
 
 	while (search_objects.size()) {
 		const auto current = std::move(search_objects.back());
@@ -465,14 +453,18 @@ bool default_accept(const polynomial::Monomials& p, const Interval& i)
 
 polynomial::Monomials no_root_multiplicities(const polynomial::Monomials& p, double allowed_err)
 {
-	Division div = p / greatest_common_denominator(p, derive(p), allowed_err);
+	const auto multiplicities = greatest_common_denominator(p, derive(p), allowed_err);
 
-	if (div.rest.size()) {
-		const auto [min, max] = std::minmax_element(div.rest.begin(), div.rest.end());
-		if (std::max(std::abs(*min), *max) >= allowed_err) {
+	if (absolute_biggest_coefficient(multiplicities) > allowed_err) {
+		Division div = p / multiplicities;
+
+		if (div.rest.size() && absolute_biggest_coefficient(div.rest) > allowed_err) {
 			throw std::exception("uuh oh. this is not good indeed.");
 		}
+		//normalize(div.quotient);
+		return div.quotient;
 	}
-	normalize(div.quotient);
-	return div.quotient;
+	else {
+		return p;
+	}
 }

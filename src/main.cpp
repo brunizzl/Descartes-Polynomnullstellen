@@ -28,13 +28,13 @@ int main()
 	}
 	{
 		std::cout << "monomials roots test...";
-		const Monomials p = from_roots({0, 0, 0, 2, 2, 2, 2, 3}) * from_complex_root_pairs({ {1, 0.15} });
+		const Monomials p = from_roots({-0.5, 0.5, 2.8, 3.4}) * from_complex_root_pairs({ {-2, 0.2} }) * 0.05;
 		const Monomials p2 = no_root_multiplicities(p);
-		auto root_intervals = descartes_root_isolation(p2, Interval{ -150, 150 });
+		auto root_intervals = descartes_root_isolation(p, Interval{ -60, 150 });
 
-		Plot plot("test_plot.svg", 5, 10);
-		plot.add_polynomial(p2, RGB{ 0, 100, 250 });
-		plot.add_polynomial(p, RGB{ 200, 0, 50 });
+		Plot plot("test_plot.svg", 5, 5);
+		plot.add_polynomial(p2, rgb::navy);
+		plot.add_polynomial(p, rgb::powder_blue);
 		for (const auto& interval : root_intervals) {
 			plot.add_interval(interval);
 		}

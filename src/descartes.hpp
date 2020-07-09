@@ -102,7 +102,7 @@ namespace polynomial {
 	// as noted here https://www.cise.ufl.edu/research/SurfLab/seminar/algebraicmanipulation.pdf
 	// where b_k are the coefficients stored in the vector
 
-	Bernstein from_monomials(const Monomials& monomials, const Interval& interval);
+	Bernstein to_bernstein(const Monomials& monomials, const Interval& interval);
 
 	double evaluate(const Bernstein& polinomial, double x);
 
@@ -115,6 +115,9 @@ namespace polynomial {
 
 //returns n-th row of pascals triangle
 std::vector<double> binomial_coefficients(std::size_t n_size);
+
+//returns 0.0 if there are no elements
+double absolute_biggest_coefficient(const std::vector<double>& vec);
 
 //input l(x) = a*x+b and power n return p(x) = (a*x+b)^n
 polynomial::Monomials line_pow(polynomial::Line line, std::size_t n);

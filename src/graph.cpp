@@ -15,18 +15,17 @@ Plot::Plot(const std::string& name, double x_max, double y_max)
 	x_scale((svg_max.x - svg_min.x) / (2 * x_max)), 
 	y_scale(-(svg_max.y - svg_min.y) / (2 * y_max))
 {
-	const SVG::Style black_line = { 1, rgb::black };
-	const SVG::Style black_fill = { 0, rgb::black, rgb::black, true, 1 };
+	const SVG::Style black_line = { 0.4, rgb::black };
 
 	//draw axes as arrows and label them
-	this->picture.add_line({ svg_min.x + 5, 0 }, { svg_max.x - 3, 0 }, black_line);
-	this->picture.add_line({ 0, svg_min.y + 3 }, { 0, svg_max.y - 5 }, black_line);
-	this->picture.add_line_path({ {svg_max.x, 0}, {svg_max.x - 5, 1.5}, {svg_max.x - 5, -1.5} }, true, black_fill);
-	this->picture.add_line_path({ {0, svg_min.y}, {1.5, svg_min.y + 5}, {-1.5, svg_min.y + 5} }, true, black_fill);
-	this->picture.add_text({ svg_max.x - 5, 6 }, "x", svg_text::large);
-	this->picture.add_text({ -9, svg_min.y + 5 }, "y", svg_text::large);
+	this->picture.add_line({ svg_min.x, 0 }, { svg_max.x, 0 }, black_line);
+	this->picture.add_line({ 0, svg_min.y }, { 0, svg_max.y }, black_line);
+	this->picture.add_line_path({ {svg_max.x - 1, 1.5}, {svg_max.x, 0}, {svg_max.x - 1, -1.5} }, false, black_line);
+	this->picture.add_line_path({ {1.5, svg_min.y + 1}, {0, svg_min.y}, {-1.5, svg_min.y + 1} }, false, black_line);
+	//this->picture.add_text({ svg_max.x - 5, 6 }, "x", svg_text::large);
+	//this->picture.add_text({ -9, svg_min.y + 5 }, "y", svg_text::large);
 
-	{ //draw scale for x
+	if (false) { //draw scale for x
 		const auto x_line_at = [](double x, Plot* plot) {
 			const SVG::Style thin_black_line = { 0.5, rgb::black };
 			plot->picture.add_line({ x * plot->x_scale, 1.5 }, { x * plot->x_scale, -1.5 }, thin_black_line);
@@ -40,7 +39,7 @@ Plot::Plot(const std::string& name, double x_max, double y_max)
 		}
 	}
 
-	{ //draw scale for y
+	if (false) { //draw scale for y
 		const auto y_line_at = [](double y, Plot* plot) {
 			const SVG::Style thin_black_line = { 0.5, rgb::black };
 			plot->picture.add_line({ 1.5, y * plot->y_scale }, { -1.5, y * plot->y_scale }, thin_black_line);
@@ -94,6 +93,6 @@ void Plot::add_interval(Interval interval, const RGB& color)
 
 	this->picture.add_line_path({lower_left, lower_right, upper_right, upper_left}, true, svg_style::fill(color));
 
-	this->picture.add_line(upper_left, lower_left, SVG::Style{ 0.1, color });
-	this->picture.add_line(upper_right, lower_right, SVG::Style{ 0.1, color });
+	this->picture.add_line(upper_left, lower_left, SVG::Style{ 0.2, color });
+	this->picture.add_line(upper_right, lower_right, SVG::Style{ 0.2, color });
 }

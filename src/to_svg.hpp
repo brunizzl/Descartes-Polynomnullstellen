@@ -14,11 +14,6 @@ struct RGB
 };
 
 namespace rgb {
-	//constexpr RGB black   {   0,   0,   0 };
-	//constexpr RGB white   { 255, 255, 255 };
-	//constexpr RGB red     { 200,  50,  50 };
-	//constexpr RGB green   {  50, 200,  75 };
-	//constexpr RGB blue    {  25,  75, 200 };
 
 	//stolen from here https://www.rapidtables.com/web/color/RGB_Color.html
 	constexpr RGB maroon                   { 128,  0,  0 };

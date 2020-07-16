@@ -122,6 +122,10 @@ double absolute_biggest_coefficient(const std::vector<double>& vec);
 //input l(x) = a*x+b and power n return p(x) = (a*x+b)^n
 polynomial::Monomials line_pow(polynomial::Line line, std::size_t n);
 
+//returns coefficients of polynomial B in Vikram Sharma
+//result[i] is bernstein[i], but multiplied by binomial::choose(result.size(), i)
+std::vector<double> to_unnormalized_bernstein(const polynomial::Monomials& p, Interval relative_to);
+
 //returns how many roots of polinomial are at most in search_area
 std::size_t upper_bound_roots(const polynomial::Monomials& polinomial, Interval search_area);
 

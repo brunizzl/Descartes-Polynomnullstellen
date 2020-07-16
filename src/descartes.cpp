@@ -244,8 +244,12 @@ namespace polynomial {
 
 	Bernstein to_bernstein(const Monomials& monomials, const Interval& interval)
 	{
-		Bernstein result(binomial_coefficients(monomials.size()), interval);
-		//TODO
+		Bernstein result(to_unnormalized_bernstein(monomials, interval), interval);
+
+		for (int i = 0; i <= result.degree(); i++) {
+			result[i] /= binomial::choose(result.degree(), i);
+		}
+
 		return result;
 	}
 
@@ -338,30 +342,58 @@ Monomials line_pow(Line line, std::size_t n)
 std::size_t number_sign_changes(const std::vector<double> & p)
 {
 	std::size_t sign_changes = 0;
-	for (int i = 0; i < p.size() - 1; i++) {
-		if (p[i] * p[i + 1] < 0.0) {
-			sign_changes++;
+	enum class Sign
+	{
+		positive, negative, unknown
+	} last_sign = Sign::unknown;
+
+	for (auto coefficient : p) {
+		switch (last_sign) {
+		case Sign::unknown:
+			if (coefficient < 0) { last_sign = Sign::negative; }
+			if (coefficient > 0) { last_sign = Sign::positive; }
+			break;
+
+		case Sign::positive:
+			if (coefficient < 0) {
+				sign_changes++;
+				last_sign = Sign::negative;
+			}
+			break;
+
+		case Sign::negative:
+			if (coefficient > 0) {
+				sign_changes++;
+				last_sign = Sign::positive;
+			}
+			break;
 		}
 	}
 	return sign_changes;
 }
 
-std::size_t upper_bound_roots(const Monomials& p, Interval search_area)
+std::vector<double> to_unnormalized_bernstein(const Monomials& p, Interval relative_to)
 {
-	Monomials roots_of_search_area(p.size(), 0.0);	//called B in VikramSharma
-
+	Monomials result(p.size(), 0.0);
 	for (int i = 0; i <= p.degree(); i++) {
 		//ith_summands = (x+1)^{n-i} * (ax+b)^i * a_i
 		const Monomials ith_summands = 
 			line_pow(Line{ 1, 1 }, p.degree() - i) 
-			* line_pow(Line{ search_area.min, search_area.max }, i) 
+			* line_pow(Line{ relative_to.min, relative_to.max }, i) 
 			* p[i];
-		roots_of_search_area += ith_summands;
+		result += ith_summands;
 	}
-	const auto roots_at_0 = std::distance(roots_of_search_area.begin(), 
-		std::find_if(roots_of_search_area.begin(), roots_of_search_area.end(), nonzero));
+	return result;
+}
 
-	return roots_at_0 + number_sign_changes(roots_of_search_area);
+std::size_t upper_bound_roots(const Monomials& p, Interval search_area)
+{
+	const std::vector<double> unnormalized_bernstein_coeffs = to_unnormalized_bernstein(p, search_area);
+
+	const auto roots_at_0 = std::distance(unnormalized_bernstein_coeffs.begin(), 
+		std::find_if(unnormalized_bernstein_coeffs.begin(), unnormalized_bernstein_coeffs.end(), nonzero));
+
+	return roots_at_0 + number_sign_changes(unnormalized_bernstein_coeffs);
 }
 
 std::vector<Interval> descartes_root_isolation(const Monomials& p, const Interval& start_zone, 
@@ -398,6 +430,7 @@ std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const
 {
 	const int n = b.degree();
 	std::vector<std::vector<double>> coeffs(n + 1, std::vector<double>(n + 1, 0.0));
+	coeffs[0] = b;
 
 	for (int i = 1; i <= n; i++) {
 		for (int j = 0; j <= n - i; j++) {
@@ -416,6 +449,7 @@ std::pair<polynomial::Bernstein, polynomial::Bernstein> de_casteljau_split(const
 	return std::make_pair(std::move(fst_half), std::move(snd_half));
 }
 
+
 std::vector<Interval> descartes_root_isolation(const polynomial::Bernstein& b)
 {
 	std::vector<Interval> root_intervals;
@@ -433,10 +467,10 @@ std::vector<Interval> descartes_root_isolation(const polynomial::Bernstein& b)
 		if (sign_variations == 0) {
 			continue;
 		}
-		else if (sign_variations == 1) {
+		else if (sign_variations == 1 || current.interval.width() < 0.000001) {
 			root_intervals.push_back(current.interval);
 		}
-		else if (sign_variations > 1 && current.interval.width() > 0.000001) {
+		else if (sign_variations > 1) {
 			auto [b1, b2] = de_casteljau_split(current);
 			search_objects.push_back(std::move(b1));
 			search_objects.push_back(std::move(b2));

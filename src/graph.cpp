@@ -54,24 +54,24 @@ Plot::Plot(const std::string& name, double x_max, double y_max)
 	}
 }
 
-void Plot::add_polynomial(const polynomial::Monomials& p, const RGB& color, double stroke)
+void Plot::add_polynomial(const polynomial::Monomials& p, const SVG::Style& style)
 {
 	std::vector<Vec2D> graph;
 	const double dx = (this->max.x - this->min.x) / 500;
 	for (double x = this->min.x; x < this->max.x; x += dx) {
 		graph.push_back(this->math_to_svg(Vec2D{ x, evaluate(p, x) }));
 	}
-	this->picture.add_line_path(graph, false, { 0.5, color });
+	this->picture.add_line_path(graph, false, style);
 }
 
-void Plot::add_polynomial(const polynomial::Bernstein& p, const RGB& color, double stroke)
+void Plot::add_polynomial(const polynomial::Bernstein& p, const SVG::Style& style)
 {
 	std::vector<Vec2D> graph;
 	const double dx = (this->max.x - this->min.x) / 500;
 	for (double x = this->min.x; x < this->max.x; x += dx) {
 		graph.push_back(this->math_to_svg(Vec2D{ x, evaluate(p, x) }));
 	}
-	this->picture.add_line_path(graph, false, { stroke, color });
+	this->picture.add_line_path(graph, false, style);
 }
 
 void Plot::add_control_polygon(const polynomial::Bernstein& p, const SVG::Style& style)

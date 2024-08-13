@@ -26,6 +26,7 @@ int main()
 		plot.add_polynomial(m_4, svg_style::line(RGB{ 0, 200, 0 }, 0.5));
 		std::cout << "  done\n";
 	}
+
 	{
 		std::cout << "monomials roots test...";
 		const Monomials p = from_roots({-0.5, 0.5, 2.8, 3.4}) * from_complex_root_pairs({ {-2, 0.2} }) * 0.05;
